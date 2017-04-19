@@ -1,0 +1,88 @@
+说明:基于Anaconda安装（Anconda、python、tensorflow三个的版本必须对应）
+
+1.安装环境
+系统: ubutun14.04
+gcc>=4.8
+cuda: 7.5
+cudnn: 5.1
+python: 3.5.0
+Anaconda: 4.2.0
+bazel: 0.4.2
+tensorflow: 1.0.0-rc0
+
+
+2.安装步骤
+2.1安装python3.5.0
+参考博客：
+http://blog.csdn.net/cao812755156/article/details/52387078
+下载->解压->进入python目录->./configure->make->make install->软链接（下面两条命令）
+mv /usr/local/bin/python /usr/local/bin/python_old2
+ln -s python安装目录/bin/python3.5 /usr/local/bin/python
+（安装完成后记得改回来，即将python重新链接到原来的系统自带的python）
+
+2.2安装Anaconda3-4.2.0
+(1)下载Anaconda3-4.2.0-Linux-x86_64.sh:
+https://repo.continuum.io/archive/index.html
+(2)在Anconda下载目录执行如下命令
+bash Anaconda3-4.2.0-Linux-x86_64.sh
+（注意：安装过程中会提示是否把anaconda3的binary路径加入到.bashrc中，选择yes，这样以后python和ipython命令就会自动使用Anaconda Python 3.5环境）
+
+2.3安装bazel-0.4.2
+为了编译tensorflow,必须安装google自家的编译器bazel
+参考博客：
+http://www.52nlp.cn/%e6%b7%b1%e5%ba%a6%e5%ad%a6%e4%b9%a0%e4%b8%bb%e6%9c%ba%e7%8e%af%e5%a2%83%e9%85%8d%e7%bd%ae-ubuntu16-04-geforce-gtx1080-tensorflow
+(1)下载bazel-0.4.2-installer-linux-x86_64.sh
+(2)下载安装jdk1.8（注意添加路径）
+http://www.linuxidc.com/Linux/2015-01/112030.htm
+(3)执行
+./bazel-0.4.2-installer-linux-x86_64.sh --user
+
+2.4安装cuda7.5
+记得把cuda路径添加到~/.bashrc中
+2.5安装cudnn v5.1
+下载并在cuda安装路径下解压（系统自动将相关文件解压到cuda对应路径下）
+（安装路径与cuda路径相同）
+
+2.6安装其他依赖
+sudo apt-get install python3-numpy swig python3-dev python3-wheel
+
+2.7安装tensorflow1.0.0-rc0
+(1)下载解压tensorflow-1.0.0-rc0
+wget https://github.com/tensorflow/tensorflow/archive/v1.0.0-rc0.tar.gz
+
+tar -xzvf v1.0.0-rc0.tar.gz
+(2)在tensorflow-1.0.0-rc0下配置程序
+./configure
+（XLA just-in-time选择yes、CUDA选择yes、google clound platform选择no、opencl选择no、cuda clang compiler选择no）
+(3)编译GPU版本的TensorFlow
+bazel build --copt=-march=native -c opt --config=cuda //tensorflow/tools/pip_package:build_pip_package
+(4)pip安装TensorFlow
+bazel-bin/tensorflow/tools/pip_package/build_pip_package /tmp/tensorflow_pkg
+
+pip install /tmp/tensorflow_pkg/tensorflow-1.0.0rc0-cp35-cp35m-linux_x86_64.whl
+
+
+注意：在安装Anconda后，若将Anconda的路径添加到 ~/.bashrc中：
+export PATH="/home/amax/anaconda3/bin:$PATH"
+则在终端输入python将默认调用anaconda3下的python。
+为了不影响系统自带的python,建议在编译安装tensorflow完成后，将~/.bashrc中该行注释掉。即让系统自带的python版本成为默认的python。
+这样做，则启动python以及tensorflow的方式为:
+cd '/home/amax/anaconda3/bin'
+./python
+(先cd到anaconda安装路径的bin文件路径下,然后以./python启动该路径下的python，即anaconda3)
+
+
+问题总结：
+1.在./configure tensorflow时需要下载一些东西，网速状况会影响到编译成功（若失败，则多试试几次）
+2.若出现下面问题：
+libcudart.so.8.0: cannot open shared object file: No such file or directory 
+则参考博客：
+http://www.bubuko.com/infodetail-1800854.html
+sudo cp /usr/local/cuda-8.0/lib64/libcudart.so.8.0 /usr/local/lib/libcudart.so.8.0 && sudo ldconfig
+
+同样地，若出现cublas....或者curand....，采用同样的方式解决
+sudo cp /usr/local/cuda-8.0/lib64/libcublas.so.8.0 /usr/local/lib/libcublas.so.8.0 && sudo ldconfig
+sudo cp /usr/local/cuda-8.0/lib64/libcurand.so.8.0 /usr/local/lib/libcurand.so.8.0 && sudo ldconfig
+
+
+
